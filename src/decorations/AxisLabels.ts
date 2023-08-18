@@ -51,13 +51,20 @@ export class AxisLabels {
     context.textAlign = axisAlign[along].textAlign;
 
     if (along === "x") {
+      let [lastX, lastW] = [0, 0];
+
       for (let i = 0; i < breaks.length; i++) {
+        if ((i + store.labelCycle()) % store.labelInterval() != 0) continue;
+
         const label = breaks[i].toString();
         const x = scale.pushforward(breaks[i]);
         const { width: w } = context.measureText(label);
 
         if (x - w / 2 < innerLeft() || x + w / 2 > innerRight()) continue;
+        if (lastX + lastW > x - w) continue;
         text(context, label, x, yBase, { fontsize });
+
+        (lastX = x), (lastW = w);
       }
     } else if (along === "y") {
       for (let i = 0; i < breaks.length; i++) {

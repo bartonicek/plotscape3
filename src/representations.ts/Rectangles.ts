@@ -23,7 +23,7 @@ export default class Rectangles implements Representation {
 
     const transientOpts = {
       alpha: 0.75,
-      color: graphicParameters.groupColours[1],
+      color: graphicParameters.transientColour,
     };
 
     for (const part of parts) {

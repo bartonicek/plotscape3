@@ -130,7 +130,7 @@ export default class Factor {
     const breaks = Array(nbins + 2);
     breaks[0] = breakMin;
     breaks[breaks.length - 1] = breakMax;
-    for (let i = 1; i < breaks.length - 2; i++) {
+    for (let i = 1; i < breaks.length - 1; i++) {
       breaks[i] = breakMin + i * width;
     }
 

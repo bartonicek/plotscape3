@@ -32,6 +32,9 @@ export const makePlotStore = () => {
   const innerBottom = marginBottom;
   const innerTop = () => height() - marginTop();
 
+  const [labelInterval, setLabelInterval] = createSignal(1);
+  const [labelCycle, setLabelCycle] = createSignal(0);
+
   const signals = {
     active,
     width,
@@ -53,6 +56,8 @@ export const makePlotStore = () => {
     marginTop,
     marginRight,
     innerClickX,
+    labelInterval,
+    labelCycle,
     setActive,
     setWidth,
     setHeight,
@@ -62,6 +67,8 @@ export const makePlotStore = () => {
     setMouseY,
     setClickX,
     setClickY,
+    setLabelInterval,
+    setLabelCycle,
   };
 
   return signals;

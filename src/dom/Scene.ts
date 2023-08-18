@@ -9,7 +9,7 @@ import {
 } from "./sceneEventHandlers";
 import { makeSceneStore } from "./makeSceneStore";
 import { Dict } from "../utils/types";
-import { G3, G4, Marker } from "../wrangling/Marker";
+import { G2, G3, G4, Marker } from "../wrangling/Marker";
 
 export default class Scene<T extends Dict> {
   app: HTMLDivElement;
@@ -40,8 +40,9 @@ export default class Scene<T extends Dict> {
     this.marker = new Marker(n, selectedCases, group);
 
     this.keyActions = {
-      Digit1: () => this.store.setGroup(G3),
-      Digit2: () => this.store.setGroup(G4),
+      Digit1: () => this.store.setGroup(G2),
+      Digit2: () => this.store.setGroup(G3),
+      Digit3: () => this.store.setGroup(G4),
     };
 
     createEffect(() => {

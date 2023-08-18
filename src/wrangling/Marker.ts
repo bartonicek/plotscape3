@@ -2,6 +2,7 @@ import {
   Accessor,
   Setter,
   createEffect,
+  createMemo,
   createSignal,
   untrack,
 } from "solid-js";
@@ -102,6 +103,7 @@ export class Marker {
     for (let i = 0; i < indices.length; i++) {
       indices[i] = removeTransient(indices[i]);
     }
+
     this.setIndices(indices);
   };
 }

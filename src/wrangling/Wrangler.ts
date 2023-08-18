@@ -39,7 +39,7 @@ export default class Wrangler<
     Object.assign(getters, { marker: marker.factor });
 
     for (const [varKey, dataKey] of Object.entries(mapping)) {
-      const accessor = () => data().col(dataKey);
+      const accessor = createMemo(() => data().col(dataKey));
       Object.assign(getters, { [varKey]: accessor });
     }
 
@@ -75,13 +75,13 @@ export default class Wrangler<
     // No args = initialize a signal
     if (!bindfn.length) {
       const [getter, setter] = createSignal(bindfn(getters));
-      Object.assign(getters, { [key]: getter });
+      Object.assign(getters, { [key]: createMemo(getter) });
       Object.assign(setters, { [key]: setter });
       return new Wrangler(getters, setters, partitions);
     }
 
     // Else computed value
-    Object.assign(getters, { [key]: () => bindfn(getters) });
+    Object.assign(getters, { [key]: createMemo(() => bindfn(getters)) });
     const newWrangler = new Wrangler(getters, setters, this.partitions);
     return newWrangler;
   };

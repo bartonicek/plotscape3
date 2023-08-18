@@ -30,7 +30,7 @@ export default class Points implements Representation {
 
     const transientOpts = {
       alpha: 0.75,
-      color: graphicParameters.groupColours[1],
+      color: graphicParameters.transientColour,
       radius,
     };
 

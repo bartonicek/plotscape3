@@ -64,7 +64,7 @@ export const point = (
   context.restore();
 };
 
-type TextOptions = { fontsize: number; fontfamily: string };
+type TextOptions = { fontsize: number; fontfamily: string; vertical: boolean };
 
 export function text(
   context: CanvasRenderingContext2D,
@@ -75,6 +75,7 @@ export function text(
 ) {
   context.save();
   context.translate(x, y);
+  if (options?.vertical) context.rotate(-Math.PI / 2);
   context.font = `${options?.fontsize ?? `10`}px ${
     options?.fontfamily ?? `Arial`
   }`;

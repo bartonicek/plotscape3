@@ -1,14 +1,15 @@
 import { clear } from "../utils/drawfuns";
+import { Dict } from "../utils/types";
 import Scene from "./Scene";
 
-export const onDoubleClick = (scene: Scene) => () => {
+export const onDoubleClick = (scene: Scene<Dict>) => () => {
   scene.plots.forEach((plot) => plot.deactivate());
   scene.marker.clearAll();
   scene.store.setGroup(128);
   scene.store.setSelectedCases([]);
 };
 
-export const onMousedown = (scene: Scene) => (event: MouseEvent) => {
+export const onMousedown = (scene: Scene<Dict>) => (event: MouseEvent) => {
   const target = event.target;
   scene.plots.forEach((plot) => clear(plot.contexts.user)); // Clear drag rectangles
 
@@ -21,11 +22,11 @@ export const onMousedown = (scene: Scene) => (event: MouseEvent) => {
   }
 };
 
-export const onKeyDown = (scene: Scene) => (event: KeyboardEvent) => {
+export const onKeyDown = (scene: Scene<Dict>) => (event: KeyboardEvent) => {
   const key = event.code;
   scene.keyActions[key]?.();
 };
 
-export const onKeyUp = (scene: Scene) => () => {
+export const onKeyUp = (scene: Scene<Dict>) => () => {
   scene.store.setGroup(128);
 };

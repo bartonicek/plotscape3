@@ -2,8 +2,9 @@ import { batch } from "solid-js";
 import { clear, rect } from "../utils/drawfuns";
 import { call, toInt } from "../utils/funs";
 import Plot from "./Plot";
+import { Dict } from "../utils/types";
 
-export const onResize = (plot: Plot) => () => {
+export const onResize = (plot: Plot<Dict>) => () => {
   const { setWidth, setHeight } = plot.store;
   setWidth(toInt(getComputedStyle(plot.container)["width"]));
   setHeight(toInt(getComputedStyle(plot.container)["height"]));
@@ -11,7 +12,7 @@ export const onResize = (plot: Plot) => () => {
   plot.decorations.forEach((decoration) => decoration.draw());
 };
 
-export const onMouseDown = (plot: Plot) => (event: MouseEvent) => {
+export const onMouseDown = (plot: Plot<Dict>) => (event: MouseEvent) => {
   const {
     height,
     marginBottom,
@@ -34,20 +35,26 @@ export const onMouseDown = (plot: Plot) => (event: MouseEvent) => {
   batch(() => {
     setClickX(x), setClickY(y), setMouseX(x), setMouseY(y);
   });
+
+  const { setSelectedCases } = plot.scene.store;
+
+  plot.representations.forEach((rep) =>
+    setSelectedCases(rep.checkSelection([x, y, x, y]))
+  );
 };
 
 // Right click
-export const onContextmenu = (plot: Plot) => (event: MouseEvent) => {
+export const onContextmenu = (plot: Plot<Dict>) => (event: MouseEvent) => {
   plot.store.setRightButtonClicked(true);
   event.preventDefault();
 };
 
-export const onMouseup = (plot: Plot) => () => {
+export const onMouseup = (plot: Plot<Dict>) => () => {
   plot.store.setRightButtonClicked(false);
   plot.store.setHolding(false);
 };
 
-export const onMouseMove = (plot: Plot) => (event: MouseEvent) => {
+export const onMouseMove = (plot: Plot<Dict>) => (event: MouseEvent) => {
   if (!plot.store.holding()) return;
 
   const { height, marginLeft, marginBottom, setMouseX, setMouseY } = plot.store;
@@ -72,20 +79,28 @@ export const onMouseMove = (plot: Plot) => (event: MouseEvent) => {
     return;
   }
 
-  plot.scene.marker.clearTransient();
   // Draw the selection rectangle
   const { clickX, clickY, mouseX, mouseY } = plot.store;
   const [x0, x1, y0, y1] = [clickX, mouseX, clickY, mouseY].map(call);
+
   clear(plot.contexts.user);
   rect(plot.contexts.user, x0, x1, y0, y1, { alpha: 0.25 });
+
+  plot.scene.marker.clearTransient();
 
   batch(() => {
     setMouseX(x);
     setMouseY(y);
   });
+
+  const { setSelectedCases } = plot.scene.store;
+
+  plot.representations.forEach((rep) =>
+    setSelectedCases(rep.checkSelection([x0, y0, x1, y1]))
+  );
 };
 
-export const onKeyDown = (plot: Plot) => (event: KeyboardEvent) => {
+export const onKeyDown = (plot: Plot<Dict>) => (event: KeyboardEvent) => {
   if (!plot.store.active()) return;
 
   const key = event.code;

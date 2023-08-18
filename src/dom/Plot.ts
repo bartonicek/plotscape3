@@ -1,4 +1,4 @@
-import { Accessor, createEffect, on } from "solid-js";
+import { Accessor, createEffect, createMemo, on } from "solid-js";
 import { Dict } from "../utils/types";
 import Dataframe from "../wrangling/Dataframe";
 import Wrangler from "../wrangling/Wrangler";
@@ -20,6 +20,7 @@ import { throttle } from "../utils/funs";
 import { PlotScales, makePlotScales } from "./makePlotScales";
 import { AxisLabels } from "../decorations/AxisLabels";
 import { PlotDefaults, makePlotDefaults } from "./makePlotDefaults";
+import { AxisTitle } from "../decorations/AxisTitle";
 
 export type Context =
   | "base"
@@ -34,6 +35,7 @@ export type Context =
   | 131
   | 132;
 export type Contexts = Record<Context, CanvasRenderingContext2D>;
+export type PlotOptions = { xTitle?: string; yTitle?: string };
 
 export default class Plot<T extends Dict> {
   data: Accessor<Dataframe<Dict>>;
@@ -55,7 +57,11 @@ export default class Plot<T extends Dict> {
 
   keyActions: Record<string, () => void>;
 
-  constructor(scene: Scene<T>, mapping: Record<string, keyof T>) {
+  constructor(
+    scene: Scene<T>,
+    mapping: Record<string, keyof T>,
+    options?: PlotOptions
+  ) {
     const { data, marker } = scene;
 
     this.data = data;
@@ -93,12 +99,14 @@ export default class Plot<T extends Dict> {
 
     this.addDecoration(new AxisLabels(this, "x"));
     this.addDecoration(new AxisLabels(this, "y"));
+    this.addDecoration(new AxisTitle(this, "x", options?.xTitle ?? "x"));
+    this.addDecoration(new AxisTitle(this, "y", options?.yTitle ?? "y"));
 
     const { container } = this;
 
     createEffect(() => {
       container.addEventListener("mousedown", onMouseDown(this));
-      container.addEventListener("mousemove", throttle(onMouseMove(this), 30));
+      container.addEventListener("mousemove", throttle(onMouseMove(this), 0));
       container.addEventListener("mouseup", onMouseup(this));
       container.addEventListener("contextmenu", onContextmenu(this));
       window.addEventListener("resize", throttle(onResize(this), 50));
@@ -107,11 +115,15 @@ export default class Plot<T extends Dict> {
 
     this.keyActions = {
       KeyR: () => {
+        this.store.setLabelInterval(1);
+        this.store.setLabelCycle(0);
         for (const scale of Object.values(this.scales)) {
           scale.data.x.setExpand(-0.1, 1.1);
           scale.data.y.setExpand(-0.1, 1.1);
         }
       },
+      KeyK: () => this.store.setLabelInterval((interval) => interval + 1),
+      KeyL: () => this.store.setLabelCycle((cycle) => cycle + 1),
     };
 
     scene.addPlot(this);
@@ -136,25 +148,6 @@ export default class Plot<T extends Dict> {
 
   addRepresentation = (representation: Representation) => {
     this.representations.push(representation);
-
-    representation.draw();
-
     createEffect(representation.draw);
-
-    const { clickX, clickY, mouseX, mouseY } = this.store;
-    const { setSelectedCases } = this.scene.store;
-    const selection = [clickX, clickY, mouseX, mouseY] as [
-      Accessor<number>,
-      Accessor<number>,
-      Accessor<number>,
-      Accessor<number>
-    ];
-
-    createEffect(
-      on(selection, (selection) => {
-        if (!this.store.holding() || this.store.rightButtonClicked()) return;
-        setSelectedCases(representation.checkSelection(selection));
-      })
-    );
   };
 }
