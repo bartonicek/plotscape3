@@ -1,41 +1,48 @@
-import { Accessor, createEffect, createSignal } from "solid-js";
+import "./styles.css";
+import Scene from "./dom/Scene";
+import { loadJSON } from "./utils/funs";
 import Dataframe from "./wrangling/Dataframe";
-import Factor from "./wrangling/Factor";
+import { HistoPlot } from "./wrappers/HistoPlot";
+import { Accessor, createRoot, createSignal } from "solid-js";
 import Wrangler from "./wrangling/Wrangler";
-import FactorIndexMap from "./wrangling/FactorIndexMap";
-import { Dict } from "./utils/types";
+import { Just } from "./utils/types";
+import { LABELSDICT } from "./wrangling/Marker";
+import { BarPlot } from "./wrappers/BarPlot";
+import { ScatterPlot } from "./wrappers/Scatterplot";
+import { convertCompilerOptionsFromJson } from "typescript";
 
-const x = Factor.from(["b", "a", "a", "c", "a"]);
-const y = Factor.from(["M", "M", "F", "F", "M"]);
-const w = Factor.singleton(5);
-const z = Factor.product(x, w);
+type DataMpg = {
+  manufacturer: string[];
+  model: string[];
+  displ: number[];
+  year: number[];
+  cyl: number[];
+  class: string[];
+  trans: string[];
+  drv: string[];
+  hwy: number[];
+  cty: number[];
+};
 
-const data1 = Dataframe.fromCols({
-  income: [1, 2, 3, 4],
-  group: ["a", "b", "c", "d"],
+const mpg: DataMpg = await loadJSON("./testData/mpg.json");
+const diamonds = await loadJSON("./testData/diamonds.json");
+
+const dataMpg = () => Dataframe.fromCols(mpg);
+const dataDiamonds = () => Dataframe.fromCols(diamonds);
+
+const app = document.querySelector("#app") as HTMLDivElement;
+
+createRoot(() => {
+  const scene1 = new Scene(app, dataMpg);
+  const plot1 = new HistoPlot(scene1, { v1: "hwy" });
+  const plot2 = new HistoPlot(scene1, { v1: "displ" });
+  const plot3 = new BarPlot(scene1, { v1: "manufacturer" });
+  const plot4 = new ScatterPlot(scene1, { v1: "displ", v2: "hwy" });
+  scene1.setRowsCols(2, 2);
+
+  // const scene2 = new Scene(app, dataDiamonds);
+  // const plot21 = new ScatterPlot(scene2, { v1: "carat", v2: "price" });
+  // const plot23 = new BarPlot(scene2, { v1: "color" });
 });
-const data2 = Dataframe.fromRows([
-  { x: 1, y: "a" },
-  { x: 2, y: "b" },
-]);
 
-const data3 = data2.rename({ lol: "x", lmao: "y" });
-
-const dataAccessor = () => data1;
-const mapping = {
-  v1: "group",
-  v2: "income",
-} as const;
-
-const wrangler1 = new Wrangler(dataAccessor, mapping)
-  .bind("anchor", () => 0)
-  .bind("width", () => 0.5)
-  .bind("bins", ({ width, anchor, v2 }) =>
-    Factor.bin(v2(), { anchor: anchor(), width: width() })
-  );
-
-createEffect(() => {
-  console.log(wrangler1.get("bins").labels);
-});
-
-wrangler1.set("width", 1);
+console.log(LABELSDICT);

@@ -1,38 +1,44 @@
 import Dataframe from "./Dataframe";
+import Factor from "./Factor";
 import FactorIndexMap from "./FactorIndexMap";
-import { Dict, Mapfn, Reducefn, Stackfn } from "../utils/types";
-import { Factor } from "./Factor";
-import { Accessor, createMemo } from "solid-js";
-import { firstArgument, identity, POJO, secondArgument } from "../utils/funs";
+import { Dict, Just, Mapfn, Reducefn, Stackfn } from "../utils/types";
+import { Accessor, Setter, createMemo, createSignal } from "solid-js";
+import {
+  diff,
+  firstArgument,
+  identity,
+  POJO,
+  secondArgument,
+} from "../utils/funs";
 
-type Part = Record<string | symbol, any>;
-
-export default class Partition<T extends Dict> {
+export default class Partition {
   n: number;
   depth: number;
-  parent?: Partition<any>;
+  parent?: Partition;
+  parentParts: Accessor<Record<number, Dict>>;
 
-  data: Accessor<Dataframe<T>>;
+  data: Accessor<Dataframe<Dict>>;
   factor: Accessor<Factor>;
   indexMap: FactorIndexMap;
 
   reduced: boolean;
 
-  reducefn: Reducefn<Dict, Dict>;
-  mapfn: Mapfn<Dict, Dict>;
-  stackfn: Stackfn<Dict, Dict>;
-  trackfn: Reducefn<Dict, Dict>;
+  reducefn: Reducefn<any, any>;
+  mapfn: Mapfn<any, any>;
+  stackfn: Stackfn<any, any>;
+  trackfn: Reducefn<any, any>;
 
-  reduceInitial: () => Part;
-  stackInitial: () => Part;
-  trackInitial: () => Part;
+  reduceInitial: Just<Dict>;
+  stackInitial: Just<Dict>;
+  trackInitial: Just<Dict>;
 
-  tracked: Part;
+  partMeta: Accessor<Dict>;
+  setPartMeta: Setter<Dict>;
 
   constructor(
-    data: Accessor<Dataframe<T>>,
+    data: Accessor<Dataframe<Dict>>,
     factor: Accessor<Factor>,
-    parent?: Partition<any>
+    parent?: Partition
   ) {
     this.n = data().n;
     this.depth = (parent?.depth ?? -1) + 1;
@@ -40,7 +46,10 @@ export default class Partition<T extends Dict> {
     this.factor = createMemo(factor);
 
     this.parent = parent;
-    this.indexMap = new FactorIndexMap(factor, parent?.factor);
+    this.parentParts = parent
+      ? createMemo(parent?.partsDict)
+      : () => ({ 0: {} });
+    this.indexMap = new FactorIndexMap(this.factor, this.parent?.factor);
 
     this.reduced = false;
 
@@ -53,8 +62,12 @@ export default class Partition<T extends Dict> {
     this.stackInitial = POJO;
     this.trackInitial = POJO;
 
-    this.tracked = {};
+    const [partMeta, setPartMeta] = createSignal({});
+    this.partMeta = partMeta;
+    this.setPartMeta = setPartMeta;
   }
+
+  meta = () => ({ ...this.factor().meta, ...this.partMeta() });
 
   nest = (childFactor: Accessor<Factor>) => {
     const { data, factor } = this;
@@ -64,9 +77,9 @@ export default class Partition<T extends Dict> {
     return childPartition;
   };
 
-  reduceData = <T extends Part>(
-    reducefn: Reducefn<Dict, Dict>,
-    initialfn: () => T
+  reduceData = <T extends Dict, U extends Dict>(
+    reducefn: Reducefn<T, U>,
+    initialfn: () => U
   ) => {
     this.reducefn = reducefn;
     this.reduceInitial = initialfn;
@@ -74,21 +87,24 @@ export default class Partition<T extends Dict> {
     return this;
   };
 
-  mapParts = (mapfn: Mapfn<Dict, Dict>) => {
-    this.mapfn = (part: Record<string, any>) => {
-      return { ...mapfn(part), parent: part.parent };
-    };
-
+  mapParts = <T extends Dict, U extends Dict>(mapfn: Mapfn<T, U>) => {
+    this.mapfn = mapfn;
     return this;
   };
 
-  stackParts = (stackfn: Stackfn<Dict, Dict>, initialfn: () => Dict) => {
+  stackParts = <T extends Dict, U extends Dict>(
+    stackfn: Stackfn<T, U>,
+    initialfn: Just<U>
+  ) => {
     this.stackfn = stackfn;
     this.stackInitial = initialfn;
     return this;
   };
 
-  trackParts = (trackfn: Reducefn<Part, Part>, initialfn: () => Part) => {
+  trackParts = <T extends Dict, U extends Dict>(
+    trackfn: Reducefn<T, U>,
+    initialfn: Just<U>
+  ) => {
     this.trackfn = trackfn;
     this.trackInitial = initialfn;
     return this;
@@ -97,54 +113,55 @@ export default class Partition<T extends Dict> {
   parts = () => Object.values(this.partsDict());
 
   partsDict = () => {
-    const [computed, factor] = [this.computed(), this.factor()];
     const { parent } = this;
-    const partIndices = factor.indexSet;
+    const [computed, factor] = [this.computed(), this.factor()];
+    const { indexSet: partIndices, labels } = factor;
     const parentParts = parent ? parent.partsDict() : { 0: {} };
 
     const { mapfn, stackfn, trackfn, stackInitial, trackInitial } = this;
-    const result: Record<number, Part> = {};
-    const stackKey = Symbol();
+    const result: Record<number, Dict> = {};
+    const stackSymbol = Symbol();
 
     if (!parent) {
       const part = mapfn({ ...computed[0], ...factor.labels[0] });
-      const result: Record<number, Part> = { 0: part };
-      this.tracked = trackfn(trackInitial(), result);
-      return result;
+      this.setPartMeta(() => trackfn(trackInitial(), part));
+      return { 0: part } as Record<number, Dict>;
     }
 
-    this.tracked = trackInitial();
+    let meta = trackInitial();
 
     for (const index of partIndices) {
       const parentPart = parentParts[this.parentIndex(index)];
-      let part = mapfn({
-        ...computed[index],
-        ...factor.labels[index],
-        parent: parentPart,
-      });
 
-      if (!(stackKey in parentPart)) parentPart[stackKey] = stackInitial();
-      parentPart[stackKey] = stackfn(parentPart[stackKey], part);
-      part = parentPart[stackKey];
-      this.tracked = trackfn(this.tracked, part);
+      let part = mapfn(Object.assign({}, computed[index], labels[index]));
+      Object.assign(part, factor.labels[index], { parent: parentPart });
+
+      if (!(stackSymbol in parentPart)) {
+        parentPart[stackSymbol] = stackInitial();
+      }
+
+      parentPart[stackSymbol] = stackfn(parentPart[stackSymbol], part);
+      Object.assign(part, parentPart[stackSymbol]);
+      meta = trackfn(meta, part);
 
       result[index] = part;
     }
 
     // Clean up stacking prop from parent parts
     for (const parentPart of Object.values(parentParts)) {
-      delete parentPart[stackKey];
+      delete parentPart[stackSymbol];
     }
 
+    this.setPartMeta(meta);
     return result;
   };
 
   computed = () => {
+    if (!this.reduced) return this.data().rows;
+
     const [data, factor] = [this.data(), this.factor()];
     const { reducefn, reduceInitial } = this;
     const result: Record<number, any> = {};
-
-    if (!this.reduced) return data.rows;
 
     for (let i = 0; i < factor.n; i++) {
       const index = factor.indexAt(i);
