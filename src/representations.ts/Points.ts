@@ -56,8 +56,8 @@ export default class Points implements Representation {
     const selY = [coords[1], coords[3]] as [number, number];
     const selectedCases: number[] = [];
 
-    for (const part of parts) {
-      const { x, y, cases } = part;
+    for (let i = 0; i < parts.length; i++) {
+      const { x, y } = parts[i];
       const objX = [-1, 1].map(
         (e) => scaleX(x) + (e * radius) / Math.sqrt(2)
       ) as [number, number];
@@ -65,7 +65,7 @@ export default class Points implements Representation {
         (e) => scaleY(y) + (e * radius) / Math.sqrt(2)
       ) as [number, number];
 
-      if (rectOverlap(objX, objY, selX, selY)) selectedCases.push(...cases);
+      if (rectOverlap(objX, objY, selX, selY)) selectedCases.push(i);
     }
 
     return selectedCases;

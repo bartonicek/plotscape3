@@ -118,6 +118,8 @@ export default class Partition {
     const { indexSet: partIndices, labels } = factor;
     const parentParts = parent ? parent.partsDict() : { 0: {} };
 
+    // const partIndices2 = Object.keys(computed);
+
     const { mapfn, stackfn, trackfn, stackInitial, trackInitial } = this;
     const result: Record<number, Dict> = {};
     const stackSymbol = Symbol();
@@ -130,11 +132,14 @@ export default class Partition {
 
     let meta = trackInitial();
 
-    for (const index of partIndices) {
+    for (const key of partIndices) {
+      const index = key;
       const parentPart = parentParts[this.parentIndex(index)];
 
-      let part = mapfn(Object.assign({}, computed[index], labels[index]));
-      Object.assign(part, factor.labels[index], { parent: parentPart });
+      const pRef = { parent: parentPart };
+
+      let part = mapfn(Object.assign({}, computed[index], labels[index], pRef));
+      Object.assign(part, factor.labels[index], pRef);
 
       if (!(stackSymbol in parentPart)) {
         parentPart[stackSymbol] = stackInitial();

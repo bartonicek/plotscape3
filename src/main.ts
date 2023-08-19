@@ -25,7 +25,7 @@ type DataMpg = {
 };
 
 const mpg: DataMpg = await loadJSON("./testData/mpg.json");
-const diamonds = await loadJSON("./testData/diamonds.json");
+// const diamonds = await loadJSON("./testData/diamonds.json");
 
 // const n = diamonds[Object.keys(diamonds)[0]].length;
 // const prop = 0.1;
@@ -38,12 +38,10 @@ const diamonds = await loadJSON("./testData/diamonds.json");
 // for (let [key, col] of Object.entries(diamonds)) {
 //   diamonds2[key] = col.filter((_, i) => indices.indexOf(i) > 0);
 // }
+// const dataDiamonds = () => Dataframe.fromCols(diamonds2);
 
 const dataMpg = () => Dataframe.fromCols(mpg);
-// const dataDiamonds = () => Dataframe.fromCols(diamonds2);
 const app = document.querySelector("#app") as HTMLDivElement;
-
-console.log(mpg);
 
 createRoot(() => {
   const scene1 = new Scene(app, dataMpg);

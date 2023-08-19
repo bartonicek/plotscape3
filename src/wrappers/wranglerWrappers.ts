@@ -5,16 +5,20 @@ import { Dict } from "../utils/types";
 import Factor from "../wrangling/Factor";
 import Wrangler from "../wrangling/Wrangler";
 
+const [min, max] = [true, true];
+
 export const partition2D = (
   wrangler: Wrangler<{ v1: Accessor<number[]>; v2: Accessor<number[]> }, {}>
 ) => {
   wrangler
-    .bind("factor1", ({ v1 }) => Factor.fromContinuous(v1(), { name: "x" }))
-    .bind("factor2", ({ v2 }) => Factor.fromContinuous(v2(), { name: "y" }))
+    .bind("factor1", ({ v1 }) => Factor.biject(v1(), { name: "x", min, max }))
+    .bind("factor2", ({ v2 }) => Factor.biject(v2(), { name: "y", min, max }))
     .bind("factor3", ({ factor1, factor2 }) =>
       Factor.product(factor1(), factor2())
     )
     .partitionBy("factor3", "marker")
+    .mapPartsAt(1, ({ v1, v2 }) => ({ x: v1, y: v2 }))
+    .mapPartsAt(2, ({ parent }) => ({ x: parent.x, y: parent.y }))
     .update();
 };
 

@@ -1,4 +1,6 @@
 import {
+  arrayMax,
+  arrayMin,
   diff,
   disjointUnion,
   last,
@@ -9,6 +11,7 @@ import { Dict } from "../utils/types";
 
 export type Labels<T> = Record<number, T>;
 type Opts = { name?: string; singleton?: boolean; bijection?: boolean };
+type BijectionOpts = Opts & { min?: boolean; max?: boolean };
 type FromOpts<T> = Opts & {
   labs?: T[];
   keepLabs?: boolean;
@@ -61,17 +64,18 @@ export default class Factor {
     return new Factor(indices, new Set([0]), label, {}, { singleton: true });
   };
 
-  static bijection = (n: number, options?: Opts) => {
+  static biject = <T extends number>(values: T[], options?: BijectionOpts) => {
+    const n = values.length;
     const indices = sequence(0, n - 1);
+    const indexSet = new Set(indices);
     const labels: Labels<Dict> = {};
-    for (const index of indices) labels[index] = {};
-    return new Factor(
-      indices,
-      new Set(indices),
-      labels,
-      {},
-      { bijection: true }
-    );
+
+    const meta: Dict = {};
+    if (options?.min) meta[(options?.name ?? "") + "Min"] = arrayMin(values);
+    if (options?.max) meta[(options?.name ?? "") + "Max"] = arrayMax(values);
+    for (const index of indices) labels[index] = { cases: new Set([index]) };
+
+    return new Factor(indices, indexSet, labels, meta, { bijection: true });
   };
 
   static from = <T extends number | string>(
@@ -166,7 +170,13 @@ export default class Factor {
 
   static product = (...factors: Factor[]) => {
     factors = factors.filter((x) => !x.singleton);
-    if (factors.length == 1 || factors[0].bijection) return factors[0];
+    if (factors.length == 1) return factors[0];
+
+    if (factors.every((x) => x.bijection)) {
+      const { indices, indexSet, labels } = factors[0];
+      const meta = factors.reduce((a, b) => disjointUnion(a, b.meta), {});
+      return new Factor(indices, indexSet, labels, meta);
+    }
 
     const indicesArray = [];
     const labelArray = [];

@@ -21,6 +21,7 @@ import { PlotScales, makePlotScales } from "./makePlotScales";
 import { AxisLabels } from "../decorations/AxisLabels";
 import { PlotDefaults, makePlotDefaults } from "./makePlotDefaults";
 import { AxisTitle } from "../decorations/AxisTitle";
+import { clear } from "../utils/drawfuns";
 
 export type Context =
   | "base"
@@ -139,6 +140,7 @@ export default class Plot<T extends Dict> {
   deactivate = () => {
     this.store.setActive(false);
     this.container.classList.remove("active");
+    clear(this.contexts.user);
   };
 
   addDecoration = (decoration: any) => {
