@@ -3,7 +3,7 @@ import Scene from "../dom/Scene";
 import Points from "../representations.ts/Points";
 import { Dict } from "../utils/types";
 import Wrangler, { Getters } from "../wrangling/Wrangler";
-import { partition2D } from "./wranglerWrappers";
+import { partition2D } from "./wranglingWrappers";
 
 export class ScatterPlot<T extends Dict> extends Plot<T> {
   constructor(

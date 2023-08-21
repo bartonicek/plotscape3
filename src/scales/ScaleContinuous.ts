@@ -30,9 +30,11 @@ export class ScaleContinuous implements Scale {
     return domain.lower() + codomainPct * domain.range();
   };
 
+  base = () => Math.floor(Math.log10(this.domain.range()));
+
   breaks = (n = 4) => {
     const unitGross = this.domain.range() / n;
-    const base = Math.floor(Math.log10(unitGross));
+    const base = this.base();
 
     const candidates = [1, 2, 4, 5, 10];
     let [minDist, neatValue] = [Infinity, 0];

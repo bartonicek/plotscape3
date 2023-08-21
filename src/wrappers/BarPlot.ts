@@ -3,7 +3,8 @@ import Scene from "../dom/Scene";
 import Bars from "../representations.ts/Bars";
 import { Dict } from "../utils/types";
 import Wrangler, { Getters } from "../wrangling/Wrangler";
-import { countCat1d, encodeBar } from "./wranglerWrappers";
+import { countCat1d } from "./wranglingWrappers";
+import { encodeBar } from "./encodingWrappers";
 
 export class BarPlot<T extends Dict> extends Plot<T> {
   constructor(

@@ -1,10 +1,32 @@
-import { Accessor } from "solid-js";
+import { Accessor, createEffect } from "solid-js";
 import Plot, { PlotOptions } from "../dom/Plot";
 import Scene from "../dom/Scene";
 import Rectangles from "../representations.ts/Rectangles";
 import { Dict } from "../utils/types";
 import Wrangler, { Getters } from "../wrangling/Wrangler";
-import { countBins1d, encodeHisto, encodeSpine } from "./wranglerWrappers";
+import { countBins1d } from "./wranglingWrappers";
+import { encodeHisto, encodeSpine } from "./encodingWrappers";
+
+const histo = (
+  wrangler: Wrangler<any, any>,
+  defaults: any,
+  decorations: any
+) => {
+  encodeHisto(wrangler);
+};
+
+const spine = (
+  wrangler: Wrangler<any, any>,
+  defaults: any,
+  decorations: any
+) => {
+  encodeSpine(wrangler, defaults);
+  const meta = wrangler.partitions[1].meta;
+  decorations[0].setValues(
+    () => meta().count,
+    () => meta().breaks
+  );
+};
 
 export class HistoPlot<T extends Dict> extends Plot<T> {
   constructor(
@@ -25,6 +47,8 @@ export class HistoPlot<T extends Dict> extends Plot<T> {
     const xMax = () => limits().xMax;
     const yMin = () => limits().yMin;
     const yMax = () => limits().yMax;
+    const breaks = () => limits().breaks;
+    const counts = () => limits().count;
 
     for (const scale of Object.values(this.scales)) {
       scale.data.x.setDomainSignals!(xMin, xMax);
@@ -39,9 +63,16 @@ export class HistoPlot<T extends Dict> extends Plot<T> {
       BracketRight: () => this.wrangler.set("anchor", (a: number) => a + 1),
       BracketLeft: () => this.wrangler.set("anchor", (a: number) => a - 1),
       KeyS: () => {
-        repSwitch
-          ? (encodeSpine(wrangler, defaults), (repSwitch = false))
-          : (encodeHisto(wrangler), (repSwitch = true));
+        if (repSwitch) {
+          this.decorations[0].setValues(counts, breaks);
+          encodeSpine(wrangler, defaults);
+          console.log(counts(), breaks());
+          repSwitch = false;
+        } else {
+          this.decorations[0].setValues(undefined, undefined);
+          encodeHisto(wrangler);
+          repSwitch = true;
+        }
       },
     });
 

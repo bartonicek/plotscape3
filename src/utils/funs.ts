@@ -12,6 +12,8 @@ export const POJO = () => ({});
 
 // Unary functions
 export const toInt = (x: string) => parseInt(x, 10);
+export const round = (decimal: number) => (x: number) =>
+  Math.floor(x * 10 ** decimal) / 10 ** decimal;
 
 // Binary functions
 export const sum = (x: number, y: number) => x + y;

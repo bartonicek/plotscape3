@@ -1,15 +1,11 @@
-import "./styles.css";
+import { createRoot } from "solid-js";
 import Scene from "./dom/Scene";
+import "./styles.css";
 import { loadJSON } from "./utils/funs";
 import Dataframe from "./wrangling/Dataframe";
-import { HistoPlot } from "./wrappers/HistoPlot";
-import { Accessor, createRoot, createSignal } from "solid-js";
-import Wrangler from "./wrangling/Wrangler";
-import { Just } from "./utils/types";
-import { LABELSDICT } from "./wrangling/Marker";
 import { BarPlot } from "./wrappers/BarPlot";
+import { HistoPlot } from "./wrappers/HistoPlot";
 import { ScatterPlot } from "./wrappers/Scatterplot";
-import { convertCompilerOptionsFromJson } from "typescript";
 
 type DataMpg = {
   manufacturer: string[];

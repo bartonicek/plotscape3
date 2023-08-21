@@ -6,6 +6,7 @@ import {
   last,
   sequence,
   setIntersection,
+  toInt,
 } from "../utils/funs";
 import { Dict } from "../utils/types";
 
@@ -139,11 +140,8 @@ export default class Factor {
     }
 
     const indices = Array(values.length);
-    const indexSet = new Set<number>();
-
     const labels: Labels<Dict> = {};
     const meta: Dict = {
-      breaks,
       [(options?.name ?? "bin") + "Min"]: breakMin,
       [(options?.name ?? "bin") + "Max"]: breakMax,
     };
@@ -151,14 +149,17 @@ export default class Factor {
     for (let j = 0; j < values.length; j++) {
       const index = breaks.findIndex((br) => br >= values[j]) - 1;
       indices[j] = index;
-      indexSet.add(index);
       if (!labels[index]) labels[index] = { cases: new Set() };
       labels[index].cases.add(j);
     }
 
-    const usedIndices = Array.from(indexSet).sort(diff);
+    const indexSet = new Set(Object.keys(labels).map(toInt));
+    const usedIndices = Array.from(indexSet);
+    meta.breaks = [];
+
     for (let k = 0; k < usedIndices.length; k++) {
       const [lwr, upr] = [usedIndices[k], usedIndices[k] + 1];
+      meta.breaks.push(breaks[upr]);
       Object.assign(labels[usedIndices[k]], {
         binMin: breaks[lwr],
         binMax: breaks[upr],
@@ -168,52 +169,39 @@ export default class Factor {
     return new Factor(indices, indexSet, labels, meta);
   };
 
-  static product = (...factors: Factor[]) => {
-    factors = factors.filter((x) => !x.singleton);
-    if (factors.length == 1) return factors[0];
+  static product = (factor1: Factor, factor2: Factor) => {
+    if (factor1.singleton) return factor2;
 
-    if (factors.every((x) => x.bijection)) {
-      const { indices, indexSet, labels } = factors[0];
-      const meta = factors.reduce((a, b) => disjointUnion(a, b.meta), {});
+    if (factor1.bijection) {
+      const { indices, indexSet, labels } = factor1;
+      const meta = disjointUnion(factor1.meta, factor2.meta);
       return new Factor(indices, indexSet, labels, meta);
     }
 
-    const indicesArray = [];
-    const labelArray = [];
+    const n = factor1.n;
 
-    for (const factor of factors) {
-      indicesArray.push(factor.indices);
-      labelArray.push(factor.labels);
-    }
-
-    const n = factors[0].n;
-
-    const indices: number[] = Array(n);
+    const indices = Array<number>(n);
     const labels: Labels<Dict> = {};
-    let meta: Dict = {};
-
-    for (const factor of factors) meta = disjointUnion(meta, factor.meta);
-    let indexSet: Set<number> = new Set();
+    const meta = disjointUnion(factor1.meta, factor2.meta);
 
     for (let i = 0; i < n; i++) {
-      const factorIndices = indicesArray.map((x) => x[i]);
-      const combinedIndex = parseInt(factorIndices.join("0"), 10);
+      const f1Index = factor1.indices[i];
+      const f2Index = factor2.indices[i];
+      const combinedIndex = parseInt([f1Index, f2Index].join("0"), 10);
 
       if (!(combinedIndex in labels)) {
-        const factorLabels = labelArray.map((x, j) => x[factorIndices[j]]);
-        const combinedLabel = factorLabels.reduce((a, b) => {
-          const label = disjointUnion(a, b, { skipProps: new Set(["cases"]) });
-          label.cases = setIntersection(a.cases, b.cases);
-          return label;
-        });
+        const combinedLabel = disjointUnion(
+          factor1.labels[f1Index],
+          factor2.labels[f2Index],
+          { skipProps: new Set(["cases"]) }
+        );
         labels[combinedIndex] = combinedLabel;
       }
 
       indices[i] = combinedIndex;
-      indexSet.add(combinedIndex);
     }
 
-    indexSet = new Set(Array.from(indexSet).sort(diff));
+    const indexSet = new Set(Object.keys(labels).map(toInt));
     return new Factor(indices, indexSet, labels, meta);
   };
 }

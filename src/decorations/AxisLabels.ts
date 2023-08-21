@@ -5,6 +5,8 @@ import { PlotStore } from "../dom/makePlotStore";
 import { clear, text } from "../utils/drawfuns";
 import { makeCanvasContext } from "../dom/makeCanvasContext";
 import { Dict } from "../utils/types";
+import { Accessor } from "solid-js";
+import { round } from "../utils/funs";
 
 const axisAlign = {
   x: {
@@ -17,14 +19,18 @@ const axisAlign = {
   },
 } as const;
 
-export class AxisLabels {
+export class AxisLabels<T extends string | number> {
+  at?: Accessor<T[]>;
+  labels?: Accessor<T[]>;
   along: "x" | "y";
+  tol: number;
   context: CanvasRenderingContext2D;
   scales: { x: ScaleData; y: ScaleData };
   store: PlotStore;
 
   constructor(plot: Plot<Dict>, along: "x" | "y") {
     this.along = along;
+    this.tol = 0;
     this.context = makeCanvasContext(plot, {
       inner: false,
       classes: ["over"],
@@ -33,11 +39,23 @@ export class AxisLabels {
     this.store = plot.store;
   }
 
+  setValues = (at: Accessor<T[]>, labels: Accessor<T[]>) => {
+    this.at = at;
+    this.labels = labels;
+  };
+
+  // setTol = (tolerance: number) => {
+  //   this.tol = tolerance;
+  // };
+
   draw = () => {
-    const { context, scales, along, store } = this;
+    const { context, scales, along, tol, store } = this;
 
     const scale = scales[along];
-    const breaks = scale.breaks();
+    const at = this.at?.() ?? scale.breaks();
+    let labels = this.labels?.() ?? scale.breaks();
+
+    if (typeof labels[0] === "number") labels = labels.map(round(2));
 
     const { height, innerBottom, innerTop, innerLeft, innerRight } = store;
     const { fontsize } = graphicParameters;
@@ -53,26 +71,27 @@ export class AxisLabels {
     if (along === "x") {
       let [lastX, lastW] = [0, 0];
 
-      for (let i = 0; i < breaks.length; i++) {
+      for (let i = 0; i < at.length; i++) {
         if ((i + store.labelCycle()) % store.labelInterval() != 0) continue;
 
-        const label = breaks[i].toString();
-        const x = scale.pushforward(breaks[i]);
+        const label = labels[i];
+        const x = scale.pushforward(at[i]);
         const { width: w } = context.measureText(label);
+        const wh = w / 2;
 
-        if (x - w / 2 < innerLeft() || x + w / 2 > innerRight()) continue;
+        if (x - wh < innerLeft() || x + wh > innerRight()) continue;
         if (lastX + lastW > x - w) continue;
         text(context, label, x, yBase, { fontsize });
-
         (lastX = x), (lastW = w);
       }
     } else if (along === "y") {
-      for (let i = 0; i < breaks.length; i++) {
-        const label = breaks[i].toString();
-        const y = scale.pushforward(breaks[i]);
+      for (let i = 0; i < at.length; i++) {
+        const label = at[i].toString();
+        const y = scale.pushforward(at[i]);
         const { actualBoundingBoxAscent: h } = context.measureText(label);
+        const hh = h / 2;
 
-        if (y - h / 2 < innerBottom() || y + h / 2 > innerTop()) continue;
+        if (y - hh < innerBottom() || y + hh > innerTop()) continue;
         text(context, label, xBase, height() - y, { fontsize });
       }
     }
