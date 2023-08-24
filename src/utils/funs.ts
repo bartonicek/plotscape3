@@ -3,6 +3,9 @@ import { Mapfn, Stackfn } from "./types";
 // Basic meta-programming functions
 export const call = (fn: Function) => fn();
 export const just = <T>(x: T) => {
+  return () => x;
+};
+export const justClone = <T>(x: T) => {
   return () => structuredClone(x);
 };
 export const identity = <T>(x: T) => x;

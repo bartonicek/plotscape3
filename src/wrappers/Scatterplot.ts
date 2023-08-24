@@ -33,5 +33,10 @@ export class ScatterPlot<T extends Dict> extends Plot<T> {
 
     const points = new Points(this);
     this.addRepresentation(points);
+
+    Object.assign(this.keyActions, {
+      Equal: () => points.setRadius((r) => (r * 11) / 10),
+      Minus: () => points.setRadius((r) => (r * 9) / 10),
+    });
   }
 }

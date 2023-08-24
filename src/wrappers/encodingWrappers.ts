@@ -1,6 +1,6 @@
-import { Accessor } from "solid-js";
+import { Accessor, createEffect } from "solid-js";
 import Wrangler from "../wrangling/Wrangler";
-import { just, secondArgument } from "../utils/funs";
+import { just, justClone, secondArgument } from "../utils/funs";
 import { PlotDefaults } from "../dom/makePlotDefaults";
 
 export const encodeHisto = (
@@ -52,16 +52,6 @@ export const encodeSpine = (
       (parent, part) => ({ x0: parent.x1, x1: parent.x1 + part.x1 }),
       () => ({ x1: 0 })
     )
-    // .stackPartsAt(
-    //   2,
-    //   (parent, part) => ({
-    //     x0: parent.x1,
-    //     x1: parent.x1 + part.x1,
-    //     y0: parent.y1,
-    //     y1: parent.y1 + part.y1,
-    //   }),
-    //   just({ x1: 0, y1: 0 })
-    // )
     .trackParts(({ xMin, xMax, yMin, yMax, count }, { x0, x1, y0, y1 }) => {
       const result = {
         xMin: Math.min(xMin, x0),
@@ -72,8 +62,12 @@ export const encodeSpine = (
       };
       result.count.push(xMax);
       return result;
-    }, just({ xMin: 0, xMax: 0, yMin: 0, yMax: -Infinity, count: [] }))
+    }, justClone({ xMin: 0, xMax: 0, yMin: 0, yMax: -Infinity, count: [] }))
     .update();
+
+  createEffect(() => {
+    console.log(wrangler.partitions[1].meta());
+  });
 };
 
 export const encodeBar = (

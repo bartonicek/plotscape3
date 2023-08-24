@@ -15,7 +15,7 @@ export class ScaleDiscrete implements Scale {
   constructor() {
     this.domain = new Expanse(0, 1);
     this.codomain = new Expanse(0, 1);
-    this.expand = new Expanse(0, 0);
+    this.expand = new Expanse(0, 1);
 
     this.values = () => [];
     this.n = () => this.values().length;

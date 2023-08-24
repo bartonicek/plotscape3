@@ -15,6 +15,14 @@ export class Expanse {
     this.setUpper = setUpper;
   }
 
+  setLowerSignal = (lower: Accessor<number>) => {
+    this.lower = createMemo(lower);
+  };
+
+  setUpperSignal = (upper: Accessor<number>) => {
+    this.upper = createMemo(upper);
+  };
+
   range = () => {
     return this.upper() - this.lower();
   };

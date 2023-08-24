@@ -17,8 +17,7 @@ export const partition2D = (
       Factor.product(factor1(), factor2())
     )
     .partitionBy("factor3", "marker")
-    .mapPartsAt(1, ({ v1, v2 }) => ({ x: v1, y: v2 }))
-    .mapPartsAt(2, ({ parent }) => ({ x: parent.x, y: parent.y }))
+    .mapParts(({ label0, label1 }) => ({ x: label0, y: label1 }))
     .update();
 };
 

@@ -1,6 +1,7 @@
 import { Accessor, createMemo } from "solid-js";
 import { Expanse } from "./Expanse";
 import { Scale } from "./Scale";
+import { round } from "../utils/funs";
 
 export class ScaleContinuous implements Scale {
   identity: boolean;
@@ -30,27 +31,23 @@ export class ScaleContinuous implements Scale {
     return domain.lower() + codomainPct * domain.range();
   };
 
-  base = () => Math.floor(Math.log10(this.domain.range()));
-
   breaks = (n = 4) => {
-    const unitGross = this.domain.range() / n;
-    const base = this.base();
+    const { domain } = this;
 
-    const candidates = [1, 2, 4, 5, 10];
+    const unitGross = domain.range() / n;
+    const base = Math.floor(Math.log10(unitGross));
+
+    const candidateVals = [1, 2, 4, 5, 10];
     let [minDist, neatValue] = [Infinity, 0];
 
-    for (let i = 0; i < candidates.length; i++) {
-      const dist = (candidates[i] * 10 ** base - unitGross) ** 2;
-      if (dist < minDist) {
-        [minDist, neatValue] = [dist, candidates[i]];
-      }
+    for (let i = 0; i < candidateVals.length; i++) {
+      const dist = (candidateVals[i] * 10 ** base - unitGross) ** 2;
+      if (dist < minDist) [minDist, neatValue] = [dist, candidateVals[i]];
     }
 
     const unitNeat = 10 ** base * neatValue;
-    const { domain, expand } = this;
 
-    const lower = domain.lower() + expand.lower() * domain.range();
-    const upper = domain.upper() * expand.upper();
+    const [lower, upper] = [domain.lower(), domain.upper()];
 
     const minNeat = Math.ceil(lower / unitNeat) * unitNeat;
     const maxNeat = Math.floor(upper / unitNeat) * unitNeat;
@@ -68,14 +65,16 @@ export class ScaleContinuous implements Scale {
   };
 
   setDomainSignals = (lower: Accessor<number>, upper: Accessor<number>) => {
-    this.domain.lower = createMemo(lower);
-    this.domain.upper = createMemo(upper);
+    const { expand } = this;
+    const range = () => upper() - lower();
+    this.domain.setLowerSignal(() => lower() + expand.lower() * range());
+    this.domain.setUpperSignal(() => upper() + (expand.upper() - 1) * range());
     return this;
   };
 
   setCodomainSignals = (lower: Accessor<number>, upper: Accessor<number>) => {
-    this.codomain.lower = lower;
-    this.codomain.upper = upper;
+    this.codomain.setLowerSignal(lower);
+    this.codomain.setUpperSignal(upper);
     return this;
   };
 
@@ -92,9 +91,6 @@ export class ScaleContinuous implements Scale {
   };
 
   private normalizeInDomain = (value: number) => {
-    const { domain, expand } = this;
-    const lower = domain.lower() + expand.lower() * domain.range();
-    const range = domain.range() * expand.range();
-    return (value - lower) / range;
+    return (value - this.domain.lower()) / this.domain.range();
   };
 }

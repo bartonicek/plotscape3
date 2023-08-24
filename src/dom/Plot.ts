@@ -125,6 +125,23 @@ export default class Plot<T extends Dict> {
       },
       KeyK: () => this.store.setLabelInterval((interval) => interval + 1),
       KeyL: () => this.store.setLabelCycle((cycle) => cycle + 1),
+      KeyZ: () => {
+        const { clickX, clickY, mouseX, mouseY } = this.store;
+
+        const pctScales = this.scales.inner.pct;
+        let [x0pct, x1pct] = [clickX(), mouseX()].map(pctScales.x.pullback);
+        let [y0pct, y1pct] = [clickY(), mouseY()].map(pctScales.y.pullback);
+
+        [x0pct, x1pct] = [Math.min(x0pct, x1pct), Math.max(x0pct, x1pct)];
+        [y0pct, y1pct] = [Math.min(y0pct, y1pct), Math.max(y0pct, y1pct)];
+
+        for (const scales of Object.values(this.scales)) {
+          for (const scale of Object.values(scales)) {
+            scale.x.setExpand(x0pct, x1pct);
+            scale.y.setExpand(y0pct, y1pct);
+          }
+        }
+      },
     };
 
     scene.addPlot(this);

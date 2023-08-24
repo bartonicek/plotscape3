@@ -24,7 +24,7 @@ const mpg: DataMpg = await loadJSON("./testData/mpg.json");
 // const diamonds = await loadJSON("./testData/diamonds.json");
 
 // const n = diamonds[Object.keys(diamonds)[0]].length;
-// const prop = 0.1;
+// const prop = 0.2;
 
 // const indices = Array.from(Array(n), (_, i) =>
 //   Math.random() < prop ? i : undefined
@@ -54,7 +54,7 @@ createRoot(() => {
   );
   const plot3 = new BarPlot(
     scene1,
-    { v1: "drv" },
+    { v1: "manufacturer" },
     { xTitle: "Drive", yTitle: "Count" }
   );
   const plot4 = new ScatterPlot(
@@ -67,4 +67,5 @@ createRoot(() => {
   // const scene2 = new Scene(app, dataDiamonds);
   // const plot21 = new ScatterPlot(scene2, { v1: "carat", v2: "price" });
   // const plot23 = new BarPlot(scene2, { v1: "color" });
+  // const plot33 = new HistoPlot(scene2, { v1: "price" });
 });

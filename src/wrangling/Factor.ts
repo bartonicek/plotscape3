@@ -74,7 +74,9 @@ export default class Factor {
     const meta: Dict = {};
     if (options?.min) meta[(options?.name ?? "") + "Min"] = arrayMin(values);
     if (options?.max) meta[(options?.name ?? "") + "Max"] = arrayMax(values);
-    for (const index of indices) labels[index] = { cases: new Set([index]) };
+    for (const index of indices) {
+      labels[index] = { label: values[index], cases: new Set([index]) };
+    }
 
     return new Factor(indices, indexSet, labels, meta, { bijection: true });
   };
@@ -172,9 +174,16 @@ export default class Factor {
   static product = (factor1: Factor, factor2: Factor) => {
     if (factor1.singleton) return factor2;
 
-    if (factor1.bijection) {
-      const { indices, indexSet, labels } = factor1;
+    if (factor1.bijection && factor2.bijection) {
+      const { indices, indexSet } = factor1;
       const meta = disjointUnion(factor1.meta, factor2.meta);
+      const labels: Record<number, Record<string, any>> = {};
+      for (const index of indices) {
+        labels[index] = disjointUnion(
+          factor1.labels[index],
+          factor2.labels[index]
+        );
+      }
       return new Factor(indices, indexSet, labels, meta);
     }
 
