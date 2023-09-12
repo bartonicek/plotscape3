@@ -1,6 +1,6 @@
 import Plot, { PlotOptions } from "../dom/Plot";
 import Scene from "../dom/Scene";
-import Points from "../representations.ts/Points";
+import Points from "../representations/Points";
 import { Dict } from "../utils/types";
 import Wrangler, { Getters } from "../wrangling/Wrangler";
 import { partition2D } from "./wranglingWrappers";

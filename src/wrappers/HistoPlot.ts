@@ -1,7 +1,7 @@
 import { Accessor, createEffect } from "solid-js";
 import Plot, { PlotOptions } from "../dom/Plot";
 import Scene from "../dom/Scene";
-import Rectangles from "../representations.ts/Rectangles";
+import Rectangles from "../representations/Rectangles";
 import { Dict } from "../utils/types";
 import Wrangler, { Getters } from "../wrangling/Wrangler";
 import { countBins1d } from "./wranglingWrappers";

@@ -1,6 +1,6 @@
 import Plot, { PlotOptions } from "../dom/Plot";
 import Scene from "../dom/Scene";
-import Bars from "../representations.ts/Bars";
+import Bars from "../representations/Bars";
 import { Dict } from "../utils/types";
 import Wrangler, { Getters } from "../wrangling/Wrangler";
 import { countCat1d } from "./wranglingWrappers";

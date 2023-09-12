@@ -1,6 +1,6 @@
 import { Accessor } from "solid-js";
 import { PlotStore } from "./makePlotStore";
-import { Representation } from "../representations.ts/Representation";
+import { Representation } from "../representations/Representation";
 
 // TODO
 

@@ -1,6 +1,7 @@
-import html from "solid-js/html";
-import Plot from "./Plot";
 import { createEffect } from "solid-js";
+import html from "solid-js/html";
+import { Dict } from "../utils/types";
+import Plot from "./Plot";
 
 type GraphicLayerOptions = {
   inner: boolean;
@@ -8,13 +9,16 @@ type GraphicLayerOptions = {
   classes?: (number | string)[];
 };
 
-export const makeCanvasContext = (plot: Plot, options: GraphicLayerOptions) => {
+export const makeCanvasContext = (
+  plot: Plot<Dict>,
+  options: GraphicLayerOptions
+) => {
   const scalingFactor = options.scalingFactor ?? 3;
   const canvas = html`<canvas />` as HTMLCanvasElement;
 
   if (options.classes) {
-    for (const cssClass of options.classes) {
-      canvas.classList.add(`plotscape-${cssClass}`);
+    for (const clss of options.classes) {
+      canvas.classList.add(`plotscape-${clss}`);
     }
   }
 

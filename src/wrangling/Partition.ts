@@ -1,15 +1,9 @@
+import { Accessor, Setter, createMemo, createSignal } from "solid-js";
+import { POJO, firstArgument, identity, secondArgument } from "../utils/funs";
+import { Dict, Just, Mapfn, Reducefn, Stackfn } from "../utils/types";
 import Dataframe from "./Dataframe";
 import Factor from "./Factor";
 import FactorIndexMap from "./FactorIndexMap";
-import { Dict, Just, Mapfn, Reducefn, Stackfn } from "../utils/types";
-import { Accessor, Setter, createMemo, createSignal } from "solid-js";
-import {
-  diff,
-  firstArgument,
-  identity,
-  POJO,
-  secondArgument,
-} from "../utils/funs";
 
 export default class Partition {
   n: number;

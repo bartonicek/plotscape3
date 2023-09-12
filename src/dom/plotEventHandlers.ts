@@ -1,8 +1,8 @@
 import { batch } from "solid-js";
 import { clear, rect } from "../utils/drawfuns";
 import { call, toInt } from "../utils/funs";
-import Plot from "./Plot";
 import { Dict } from "../utils/types";
+import Plot from "./Plot";
 
 export const onResize = (plot: Plot<Dict>) => () => {
   const { setWidth, setHeight } = plot.store;

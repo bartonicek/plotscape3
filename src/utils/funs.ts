@@ -34,6 +34,11 @@ export const ith = <T>(x: T[], i: number) => x[i];
 export const last = <T>(x: T[]) => x[x.length - 1];
 export const arrayMin = (x: number[]) => Math.min.apply(null, x);
 export const arrayMax = (x: number[]) => Math.max.apply(null, x);
+export const minMax = (x: number[]) =>
+  x.reduce(
+    ([min, max], e) => [Math.min(min, e), Math.max(max, e)],
+    [Infinity, -Infinity]
+  );
 
 // Set functions
 export const setUnion = <T>(x: Set<T>, y: Set<T>) => new Set([...x, ...y]);

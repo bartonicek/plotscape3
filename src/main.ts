@@ -3,6 +3,7 @@ import Scene from "./dom/Scene";
 import "./styles.css";
 import { loadJSON } from "./utils/funs";
 import Dataframe from "./wrangling/Dataframe";
+import { GROUPSARR, GROUPSDICT } from "./wrangling/Marker";
 import { BarPlot } from "./wrappers/BarPlot";
 import { HistoPlot } from "./wrappers/HistoPlot";
 import { ScatterPlot } from "./wrappers/Scatterplot";
@@ -69,3 +70,6 @@ createRoot(() => {
   // const plot23 = new BarPlot(scene2, { v1: "color" });
   // const plot33 = new HistoPlot(scene2, { v1: "price" });
 });
+
+console.log(GROUPSARR);
+console.log(GROUPSDICT);

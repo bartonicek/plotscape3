@@ -7,7 +7,7 @@ import html from "solid-js/html";
 import { GROUPSARR, Marker } from "../wrangling/Marker";
 import { makePlotStore } from "./makePlotStore";
 import { makeCanvasContext } from "./makeCanvasContext";
-import { Representation } from "../representations.ts/Representation";
+import { Representation } from "../representations/Representation";
 import {
   onContextmenu,
   onKeyDown,

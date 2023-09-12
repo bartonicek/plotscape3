@@ -4,6 +4,7 @@ import {
   diff,
   disjointUnion,
   last,
+  minMax,
   sequence,
   setIntersection,
   toInt,
@@ -124,7 +125,7 @@ export default class Factor {
   };
 
   static bin = (values: number[], options?: BinOpts) => {
-    const [min, max] = [Math.min(...values), Math.max(...values)];
+    const [min, max] = minMax(values);
     const nbins = options?.width
       ? Math.ceil((max - min) / options.width) + 1
       : 10;
